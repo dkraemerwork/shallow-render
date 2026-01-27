@@ -8,6 +8,7 @@ import {
   PipeTransform,
   Type,
   ɵReflectionCapabilities,
+  isStandalone as angularIsStandalone,
 } from '@angular/core';
 
 type IODefinition = { propertyName: string; alias: string };
@@ -77,6 +78,12 @@ export const reflect = {
   isPipe: (thing: any): thing is PipeTransform => !!getAnnotation(Pipe, thing),
 
   isStandalone: (thing: any): boolean => {
+    try {
+      if (typeof angularIsStandalone === 'function') {
+        return angularIsStandalone(thing as Type<unknown>);
+      }
+    } catch {}
+
     const directiveResult = getAnnotation(Directive, thing);
     if (directiveResult) {
       return directiveResult.standalone ?? true;
