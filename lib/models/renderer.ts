@@ -13,6 +13,7 @@ import { TestSetup } from './test-setup';
 import { mockStatics } from '../tools/mock-statics';
 import { injectRootProviders } from '../tools/inject-root-providers';
 import { ngMock } from '../tools/ng-mock';
+import { ensureTestBed } from '../tools/ensure-testbed';
 
 export class InvalidInputBindError extends CustomError {
   constructor(availableInputs: string[], key: string | symbol) {
@@ -80,6 +81,7 @@ export class Renderer<TComponent extends object> {
       ...options,
     };
 
+    ensureTestBed();
     mockStatics(this._setup);
     injectRootProviders(this._setup);
 

@@ -282,5 +282,35 @@ describe('reflect', () => {
         ],
       });
     });
+
+    it('falls back to component mirror inputs and outputs when prop metadata is missing', () => {
+      @Component({ selector: 'my-component', template: '<div></div>' })
+      class TestComponent {
+        @Input() myInput!: string;
+        @Output() myOutput = new EventEmitter<string>();
+      }
+
+      class RawComponent {}
+      (RawComponent as any).ɵcmp = { ...(TestComponent as any).ɵcmp, type: RawComponent };
+
+      expect(reflect.getInputsAndOutputs(RawComponent)).toEqual({
+        inputs: [{ alias: 'myInput', propertyName: 'myInput' }],
+        outputs: [{ alias: 'myOutput', propertyName: 'myOutput' }],
+      });
+    });
+  });
+
+  it('resolves standalone imports from component dependencies', () => {
+    @Directive({ selector: '[foo]', standalone: true })
+    class FooDirective {}
+
+    @Component({ selector: 'my-component', template: '<div foo></div>', standalone: true, imports: [FooDirective] })
+    class TestComponent {}
+
+    class RawComponent {}
+    const testDef = (TestComponent as any).ɵcmp;
+    (RawComponent as any).ɵcmp = { ...testDef, type: RawComponent, dependencies: () => new Set([FooDirective]) };
+
+    expect(reflect.resolveComponent(RawComponent).imports).toEqual([FooDirective]);
   });
 });

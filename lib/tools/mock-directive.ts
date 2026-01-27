@@ -4,6 +4,7 @@ import { MockOf } from './mock-of.directive';
 import { TestBed } from '@angular/core/testing';
 import { mockWithInputsOutputsAndStubs } from './mock-with-inputs-and-outputs-and-stubs';
 import { NG_VALUE_ACCESSOR, DefaultValueAccessor } from '@angular/forms';
+import { ensureTestBed } from './ensure-testbed';
 
 export type MockDirective = {
   renderContents: () => void;
@@ -54,6 +55,7 @@ export function mockDirective<TDirective extends Type<any>>(
 
   // Provide our mock in place of any other usage of 'thing'.
   // This makes `ViewChild` and `ContentChildren` selectors work!
+  ensureTestBed();
   TestBed.overrideDirective(MockDirective, {
     add: { providers: [{ provide: directive, useExisting: forwardRef(() => MockDirective) }] },
   });

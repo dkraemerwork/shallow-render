@@ -9,6 +9,7 @@ import { mockPipe } from './mock-pipe';
 import { mockDirective } from './mock-directive';
 import { mockComponent } from './mock-component';
 import { TestBed } from '@angular/core/testing';
+import { ensureTestBed } from './ensure-testbed';
 
 export type NgMockable = AngularModule | Type<any> | Type<PipeTransform> | any[];
 
@@ -74,6 +75,7 @@ class MockError extends CustomError {
 const fixEmptySelector = (thing: Type<any>, mock: Type<any>) => {
   const { selector } = reflect.resolveDirective(thing);
   if (!selector) {
+    ensureTestBed();
     TestBed.overrideDirective(mock, { add: { selector: `.__${mock.name}-selector` } });
   }
 };
