@@ -1,5 +1,6 @@
 import {
   ExistingProvider,
+  Provider,
   ValueProvider,
   InjectionToken,
   Pipe,
@@ -291,5 +292,26 @@ describe('mockPrivider', () => {
 
     const mockedFoo = mocked.ɵproviders[0] as ValueProvider;
     expect(mockedFoo.useValue.transform()).toBe('MOCKED FOO');
+  });
+
+  it('passes through EnvironmentProviders when no explicit mocks exist', () => {
+    const environmentProviders = makeEnvironmentProviders([FooPipe]);
+    const mocked = mockProvider(environmentProviders, testSetup);
+
+    expect(mocked).toBe(environmentProviders);
+  });
+
+  it('partially mocks EnvironmentProviders with explicit mocks', () => {
+    testSetup.mocks.set(FooPipe, { transform: () => 'MOCKED FOO' });
+    const environmentProviders = makeEnvironmentProviders([FooService, FooPipe]);
+    const mocked = mockProvider(environmentProviders, testSetup) as ɵInternalEnvironmentProviders;
+
+    expect(isEnvironmentProviders(mocked)).toBe(true);
+
+    const [serviceProvider, pipeProvider] = mocked.ɵproviders as Provider[];
+    expect(serviceProvider).toBe(FooService);
+
+    const mockedPipeProvider = pipeProvider as ValueProvider;
+    expect(mockedPipeProvider.useValue.transform()).toBe('MOCKED FOO');
   });
 });

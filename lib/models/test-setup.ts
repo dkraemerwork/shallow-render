@@ -1,4 +1,4 @@
-import { NgModule, PipeTransform, Provider, Type } from '@angular/core';
+import { EnvironmentProviders, NgModule, PipeTransform, Provider, Type } from '@angular/core';
 import { reflect } from '../tools/reflect';
 import { AngularModule } from './angular-module';
 import { MockCache } from './mock-cache';
@@ -17,7 +17,7 @@ export class TestSetup<TTestTarget> {
   // eslint-disable-next-line @typescript-eslint/ban-types
   readonly mockPipes = new Map<PipeTransform | Type<PipeTransform>, Function>();
   readonly mockCache = new MockCache();
-  readonly providers: Provider[] = [];
+  readonly providers: Array<Provider | EnvironmentProviders> = [];
   readonly declarations: Type<any>[] = [];
   readonly imports: AngularModule[] = [];
   readonly withStructuralDirectives = new Map<Type<any>, boolean>();

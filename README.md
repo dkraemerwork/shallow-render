@@ -74,6 +74,21 @@ describe('ColorLinkComponent', () => {
 });
 ```
 
+## Standalone Components
+
+Standalone components are supported directly. If you are using Angular's standalone provider APIs
+(such as `provideNoopAnimations()` or `provideRouter()`), pass them through with `provide()` or
+`alwaysProvide()`. EnvironmentProviders are passed through by default and only mocked when explicitly
+overridden or mocked in your test.
+
+```typescript
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+
+beforeEach(() => {
+  shallow = new Shallow(MyStandaloneComponent).provide(provideNoopAnimations());
+});
+```
+
 ## The problem
 
 Testing in Angular is **HARD**. TestBed is powerful but its use in component specs ends with lots of duplication.

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { InjectionToken, PipeTransform, Provider, Type } from '@angular/core';
+import { EnvironmentProviders, InjectionToken, PipeTransform, Provider, Type } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
 import { RecursivePartial } from './models/recursive-partial';
@@ -57,11 +57,11 @@ export class Shallow<TTestTarget extends object> {
    *
    * https://getsaf.github.io/shallow-render/#global-providers-with-alwaysprovide
    */
-  static alwaysProvide(...providers: Provider[]) {
+  static alwaysProvide(...providers: Array<Provider | EnvironmentProviders>) {
     this._alwaysProvide.push(...providers);
     return Shallow;
   }
-  private static readonly _alwaysProvide: Provider[] = [];
+  private static readonly _alwaysProvide: Array<Provider | EnvironmentProviders> = [];
 
   /**
    * Instruct *all* shallow-render tests to always mock an injectable in a particular way.
@@ -223,7 +223,7 @@ export class Shallow<TTestTarget extends object> {
    *
    * @link https://getsaf.github.io/shallow-render/#use-a-manual-mock-instance-or-class
    */
-  provide(...providers: Provider[]): this {
+  provide(...providers: Array<Provider | EnvironmentProviders>): this {
     this.setup.providers.unshift(...providers);
     return this;
   }
@@ -239,7 +239,7 @@ export class Shallow<TTestTarget extends object> {
    *
    * @link https://getsaf.github.io/shallow-render/#use-a-manual-mock-instance-or-class
    */
-  provideMock(...providers: Provider[]): this {
+  provideMock(...providers: Array<Provider | EnvironmentProviders>): this {
     this.setup.providers.unshift(...providers);
     this.setup.dontMock.push(...providers);
     return this;
