@@ -147,7 +147,7 @@ export const reflect = {
     // Walk up the prototype tree to find inherited in/outputs
     do
       propDecorators = {
-        ...currentComponent.propDecorators,
+        ...(currentComponent?.propDecorators || {}),
         ...resolveDirectiveInputsAndOutputs(currentComponent),
         ...propDecorators,
       };
@@ -164,7 +164,7 @@ export const reflect = {
       return firstArg?.alias || key;
     };
 
-    return Object.entries(propDecorators).reduce<InputsAndOutputs>(
+    const fromDecorators = Object.entries(propDecorators).reduce<InputsAndOutputs>(
       (acc, [key, value]) => {
         const input = value.find(v => v.type === Input);
         if (input) {
@@ -185,5 +185,28 @@ export const reflect = {
       },
       { inputs: [], outputs: [] },
     );
+
+    const mirror = getComponentMirror(componentOrDirective);
+    if (!mirror) {
+      return fromDecorators;
+    }
+
+    const inputs = [...fromDecorators.inputs];
+    const outputs = [...fromDecorators.outputs];
+    const inputNames = new Set(inputs.map(i => i.propertyName));
+    const outputNames = new Set(outputs.map(o => o.propertyName));
+
+    mirror.inputs.forEach(input => {
+      if (!inputNames.has(input.propName)) {
+        inputs.push({ propertyName: input.propName, alias: input.templateName });
+      }
+    });
+    mirror.outputs.forEach(output => {
+      if (!outputNames.has(output.propName)) {
+        outputs.push({ propertyName: output.propName, alias: output.templateName });
+      }
+    });
+
+    return { inputs, outputs };
   },
 };
