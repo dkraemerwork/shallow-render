@@ -9,6 +9,7 @@ import {
   Type,
   ɵReflectionCapabilities,
   isStandalone as angularIsStandalone,
+  reflectComponentType,
 } from '@angular/core';
 
 type IODefinition = { propertyName: string; alias: string };
@@ -27,6 +28,23 @@ type PropDecorators = Record<
 >;
 
 const reflection = new ɵReflectionCapabilities();
+const getComponentMirror = (thing: Type<any>) => {
+  try {
+    return reflectComponentType(thing);
+  } catch {
+    return null;
+  }
+};
+
+const getComponentImports = (thing: any) => {
+  const def = thing?.ɵcmp;
+  if (!def?.dependencies) {
+    return undefined;
+  }
+  return def.dependencies
+    .map((dependency: any) => dependency?.type || dependency)
+    .filter((dependency: any) => dependency);
+};
 const getAnnotation = <TType extends Directive | Component | Pipe | NgModule>(
   type: Type<TType>,
   thing: Type<any>,
@@ -67,8 +85,36 @@ const resolveDirectiveInputsAndOutputs = (componentOrDirective: any) => {
 };
 
 export const reflect = {
-  resolveComponent: (thing: any) => getAnnotation(Component, thing) || {},
-  resolveDirective: (thing: any) => getAnnotation(Directive, thing) || {},
+  resolveComponent: (thing: any) => {
+    const annotation = getAnnotation(Component, thing);
+    if (annotation) {
+      return annotation;
+    }
+
+    const mirror = getComponentMirror(thing);
+    if (mirror) {
+      return {
+        selector: mirror.selector,
+        standalone: mirror.isStandalone,
+        imports: getComponentImports(thing),
+      } as Component;
+    }
+    return {};
+  },
+  resolveDirective: (thing: any) => {
+    const annotation = getAnnotation(Directive, thing);
+    if (annotation) {
+      return annotation;
+    }
+    const mirror = getComponentMirror(thing);
+    if (mirror) {
+      return {
+        selector: mirror.selector,
+        standalone: mirror.isStandalone,
+      } as Directive;
+    }
+    return {};
+  },
   resolveModule: (thing: any) => getAnnotation(NgModule, thing) || {},
   resolvePipe: (thing: any) => getAnnotation(Pipe, thing),
   isComponent: (thing: any) => !!getAnnotation(Component, thing),
