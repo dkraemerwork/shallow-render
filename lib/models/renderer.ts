@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, OutputEmitterRef, Type } from '@angular/core';
+import { Component, Directive, EventEmitter, OutputEmitterRef, Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { testFramework } from '../test-frameworks/test-framework';
@@ -6,6 +6,10 @@ import { createContainer } from '../tools/create-container';
 import { createTestModule } from '../tools/create-test-module';
 import { mockProvider } from '../tools/mock-provider';
 import { reflect } from '../tools/reflect';
+import {
+  getStandaloneComponentImports,
+  overrideStandaloneComponentImports,
+} from '../tools/standalone-component-imports';
 import { CustomError } from './custom-error';
 import { RecursivePartial } from './recursive-partial';
 import { Rendering, RenderOptions } from './rendering';
@@ -87,6 +91,8 @@ export class Renderer<TComponent extends object> {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const resolvedTestComponent = reflect.resolveDirective(this._setup.testComponentOrService)!;
+    const resolvedComponent = reflect.resolveComponent(this._setup.testComponentOrService);
+    const hasComponentMetadata = resolvedComponent instanceof Component;
     if (!template) {
       // If no template is used, the bindings should be verified to match the
       // component @Input properties
@@ -105,22 +111,30 @@ export class Renderer<TComponent extends object> {
     // Components may have their own providers, If the test component does,
     // we will mock them out here..
     if (resolvedTestComponent.providers && resolvedTestComponent.providers.length) {
-      TestBed.overrideComponent(this._setup.testComponentOrService, {
-        set: {
-          providers: resolvedTestComponent.providers.map(p => mockProvider(p, this._setup)),
-        },
-      });
+      if (hasComponentMetadata) {
+        TestBed.overrideComponent(this._setup.testComponentOrService, {
+          set: {
+            providers: resolvedTestComponent.providers.map(p => mockProvider(p, this._setup)),
+          },
+        });
+      }
     }
 
     if (reflect.isStandalone(this._setup.testComponentOrService)) {
-      const componentImports = reflect.resolveComponent(this._setup.testComponentOrService).imports;
+      const componentImports =
+        getStandaloneComponentImports(this._setup.testComponentOrService) || resolvedComponent.imports;
       // Standalone components may have their own imports
       if (componentImports?.length) {
-        TestBed.overrideComponent(this._setup.testComponentOrService, {
-          set: {
-            imports: componentImports.flat().map(m => ngMock(m, this._setup)),
-          },
-        });
+        const mockedImports = componentImports.flat().map(m => ngMock(m, this._setup));
+        if (hasComponentMetadata) {
+          TestBed.overrideComponent(this._setup.testComponentOrService, {
+            set: {
+              imports: mockedImports,
+            },
+          });
+        } else {
+          overrideStandaloneComponentImports(this._setup.testComponentOrService, mockedImports);
+        }
       }
       TestBed.configureTestingModule({
         imports: [this._setup.testComponentOrService, createTestModule(this._setup, [])],
