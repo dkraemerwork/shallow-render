@@ -41,9 +41,12 @@ const getComponentImports = (thing: any) => {
   if (!def?.dependencies) {
     return undefined;
   }
-  return def.dependencies
-    .map((dependency: any) => dependency?.type || dependency)
-    .filter((dependency: any) => dependency);
+  const dependencies = typeof def.dependencies === 'function' ? def.dependencies() : def.dependencies;
+  if (!dependencies) {
+    return undefined;
+  }
+  const list = Array.isArray(dependencies) ? dependencies : Array.from(dependencies as Iterable<any>);
+  return list.map((dependency: any) => dependency?.type || dependency).filter((dependency: any) => dependency);
 };
 const getAnnotation = <TType extends Directive | Component | Pipe | NgModule>(
   type: Type<TType>,
