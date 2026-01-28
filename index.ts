@@ -1,5 +1,7 @@
 import { ensureAngularSingleton } from './lib/tools/angular-singleton';
 
+declare const require: any;
+
 ensureAngularSingleton();
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

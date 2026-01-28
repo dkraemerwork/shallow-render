@@ -1,4 +1,6 @@
-import { createRequire } from 'node:module';
+declare const require: any;
+declare const process: { cwd: () => string };
+declare const __filename: string;
 
 const ANGULAR_PACKAGES = [
   '@angular/core',
@@ -9,16 +11,17 @@ const ANGULAR_PACKAGES = [
   '@angular/platform-browser-dynamic/testing',
 ];
 
-const getCache = () => (require as NodeRequire).cache;
+const getCache = () => require.cache as Record<string, any>;
 
 export const ensureAngularSingleton = () => {
   const globalKey = '__shallowRenderAngularSingleton__';
-  const globalAny = globalThis as { [key: string]: boolean };
+  const globalAny = globalThis as unknown as Record<string, boolean>;
   if (globalAny[globalKey]) {
     return;
   }
   globalAny[globalKey] = true;
 
+  const createRequire = require('module').createRequire as (path: string) => any;
   const requireFromCwd = createRequire(`${process.cwd()}/`);
   const localRequire = createRequire(__filename);
 
