@@ -182,4 +182,3 @@ Here's the difference:
 - The tests have much less boilerplate which makes the specs easier to follow.
 - The HTML used to render the component is IN THE SPEC and easy to find.
   - This means specs now double examples of how to use your component.
-  
